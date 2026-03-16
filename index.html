@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Open It !!!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --pink: #ffb3c6;
+      --soft-pink: #ffd6e0;
+      --blush: #ffe4ec;
+      --deep-pink: #ff85a1;
+      --cream: #fffaf8;
+      --line: #c9e0f5;
+      --gray-cat: #bbb;
+      --white-cat: #f5f5f5;
+      --red-margin: rgba(255,120,140,0.45);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+    html { height: 100%; }
+    body {
+      background: var(--blush);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Patrick Hand', cursive;
+      overflow: hidden;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ctext y='20' font-size='20'%3E🩷%3C/text%3E%3C/svg%3E") 12 12, auto;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    /* PHOTO BACKGROUND */
+    .bg-photo {
+      position: fixed; inset: 0; z-index: 0;
+      background: url('baby.jpeg') center center / cover no-repeat;
+      filter: blur(6px) brightness(0.55) saturate(0.8);
+      transform: scale(1.08);
+    }
+    .bg-overlay {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(
+        135deg,
+        rgba(255,182,200,0.55) 0%,
+        rgba(255,220,235,0.45) 50%,
+        rgba(255,182,200,0.55) 100%
+      );
+    }
+
+    /* BG HEARTS */
+    .bg-hearts { position:fixed; inset:0; pointer-events:none; z-index:0; }
+    .bg-heart { position:absolute; animation:floatUp linear infinite; opacity:0.25; }
+    @keyframes floatUp {
+      0%   { transform:translateY(110vh) rotate(0deg); opacity:0.2; }
+      50%  { opacity:0.4; }
+      100% { transform:translateY(-10vh) rotate(25deg); opacity:0; }
+    }
+
+    /* SPARKLE */
+    .sparkle { position:fixed; pointer-events:none; z-index:999; animation:sparkleOut 0.7s ease-out forwards; font-size:1rem; }
+    @keyframes sparkleOut {
+      0%   { transform:scale(0) rotate(0deg); opacity:1; }
+      60%  { transform:scale(1.5) rotate(30deg); opacity:1; }
+      100% { transform:scale(0) rotate(60deg) translateY(-25px); opacity:0; }
+    }
+
+    /* MUSIC BTN */
+    #music-btn {
+      position:fixed; top:16px; right:16px; z-index:100;
+      background:white; border:2px solid var(--pink); border-radius:50%;
+      width:48px; height:48px; font-size:1.3rem; cursor:pointer;
+      box-shadow:0 3px 12px rgba(255,133,161,0.3);
+      transition:transform 0.2s, box-shadow 0.2s;
+      display:flex; align-items:center; justify-content:center;
+      touch-action: manipulation;
+    }
+    #music-btn:hover { transform:scale(1.12) rotate(10deg); }
+    #music-btn:active { transform:scale(0.92); }
+    #music-btn.playing { animation:spin 3s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* PAGES */
+    .page {
+      display:none; flex-direction:column; align-items:center;
+      gap:clamp(10px, 2.5vh, 18px);
+      position:relative; z-index:1;
+      width: 100%; padding: 0 16px;
+    }
+    .page.active { display:flex; }
+
+    /* ---- PASSWORD PAGE ---- */
+    .lock-icon { font-size: clamp(2.5rem, 8vw, 3.5rem); animation:lockBounce 1.6s ease-in-out infinite; }
+    @keyframes lockBounce {
+      0%,100% { transform:translateY(0) rotate(-5deg); }
+      50%      { transform:translateY(-9px) rotate(5deg); }
+    }
+    .password-title { font-family:'Caveat',cursive; font-size:clamp(1.2rem,4.5vw,1.55rem); color:var(--deep-pink); text-align:center; line-height:1.4; }
+    .pin-dots { display:flex; gap:14px; justify-content:center; margin:2px 0; }
+    .pin-dot {
+      width:16px; height:16px; border-radius:50%;
+      background:var(--soft-pink); border:2px solid var(--deep-pink);
+      transition:background 0.15s, transform 0.15s;
+    }
+    .pin-dot.filled { background:var(--deep-pink); transform:scale(1.25); }
+    .numpad {
+      display:grid; grid-template-columns:repeat(3, clamp(56px,16vw,68px)); gap:clamp(8px,2.5vw,13px);
+    }
+    .num-btn {
+      width:clamp(56px,16vw,68px); height:clamp(56px,16vw,68px); border-radius:50%;
+      border:2px solid var(--pink); background:white;
+      font-family:'Caveat',cursive; font-size:clamp(1.4rem,5vw,1.7rem); color:var(--deep-pink);
+      cursor:pointer; box-shadow:0 3px 8px rgba(255,133,161,0.2);
+      transition:transform 0.1s, background 0.1s;
+      display:flex; align-items:center; justify-content:center;
+      touch-action: manipulation; user-select: none;
+    }
+    .num-btn:hover  { background:var(--soft-pink); }
+    .num-btn:active { transform:scale(0.88); background:var(--pink); }
+    .num-btn.del    { font-size:clamp(1rem,3.5vw,1.2rem); }
+    .num-btn.empty  { visibility:hidden; }
+    .pin-hint { font-family:'Caveat',cursive; font-size:clamp(0.85rem,3vw,0.95rem); color:#c0a0aa; text-align:center; }
+    .wrong-msg { font-family:'Caveat',cursive; color:#ff6b8a; font-size:clamp(0.9rem,3vw,1rem); opacity:0; transition:opacity 0.25s; text-align:center; }
+    .wrong-msg.show { opacity:1; }
+    .shake { animation:shake 0.4s ease; }
+    @keyframes shake {
+      0%,100% { transform:translateX(0); }
+      20%     { transform:translateX(-10px); }
+      40%     { transform:translateX(10px); }
+      60%     { transform:translateX(-7px); }
+      80%     { transform:translateX(7px); }
+    }
+
+    /* ---- ENVELOPE PAGE ---- */
+    #envelope-wrap { cursor:pointer; transition:transform 0.2s; position:relative; touch-action: manipulation; }
+    #envelope-wrap:hover { transform:scale(1.06) rotate(-2deg); }
+    #envelope-wrap:active { transform:scale(0.94); }
+    .envelope {
+      width: clamp(190px, 55vw, 240px);
+      height: clamp(132px, 38vw, 168px);
+      background:var(--soft-pink);
+      border-radius:8px; position:relative;
+      box-shadow:0 8px 28px rgba(255,133,161,0.32); overflow:hidden;
+    }
+    .envelope::before {
+      content:''; position:absolute; top:0; left:0;
+      border-left: calc(clamp(190px,55vw,240px) / 2) solid transparent;
+      border-right: calc(clamp(190px,55vw,240px) / 2) solid transparent;
+      border-top: calc(clamp(132px,38vw,168px) * 0.49) solid #f9c8d8; z-index:2;
+    }
+    .envelope::after {
+      content:''; position:absolute; bottom:0; left:0; right:0;
+      height: calc(clamp(132px,38vw,168px) * 0.5);
+      background:linear-gradient(135deg,#f9c8d8 50%,transparent 50%),
+                 linear-gradient(-135deg,#f9c8d8 50%,transparent 50%);
+      background-size:50% 100%; background-position:left bottom,right bottom; background-repeat:no-repeat;
+    }
+    .heart-seal {
+      position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+      font-size:clamp(1.8rem,6vw,2.4rem); z-index:3; animation:heartbeat 1.4s ease-in-out infinite;
+    }
+    @keyframes heartbeat {
+      0%,100% { transform:translate(-50%,-50%) scale(1); }
+      50%      { transform:translate(-50%,-50%) scale(1.18); }
+    }
+    .envelope-shine {
+      position:absolute; inset:0; z-index:4; border-radius:8px;
+      background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,0.45) 50%,transparent 70%);
+      background-size:200% 100%; animation:shine 2.6s ease-in-out infinite;
+    }
+    @keyframes shine { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+    .open-label { font-family:'Caveat',cursive; font-size:clamp(1.2rem,4.5vw,1.5rem); color:var(--deep-pink); animation:wiggle 2s ease-in-out infinite; }
+    @keyframes wiggle { 0%,100%{transform:rotate(-2deg);} 50%{transform:rotate(2deg);} }
+
+    /* ---- LETTER PAGE ---- */
+    #page-letter { gap: 10px; }
+    .paper {
+      width: min(92vw, 400px);
+      max-height: 65dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius:4px 4px 8px 8px; border:2px solid #d0d0d0;
+      position:relative; padding:20px 16px 20px clamp(36px,10vw,52px);
+      box-shadow:0 10px 32px rgba(0,0,0,0.10);
+      background:repeating-linear-gradient(180deg,var(--cream) 0px,var(--cream) 28px,var(--line) 28px,var(--line) 30px);
+      animation:unfold 0.65s cubic-bezier(0.22,1,0.36,1) both;
+      transform-origin:top center;
+      scrollbar-width: thin;
+      scrollbar-color: var(--pink) transparent;
+    }
+    .paper::-webkit-scrollbar { width: 4px; }
+    .paper::-webkit-scrollbar-track { background: transparent; }
+    .paper::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 4px; }
+    @keyframes unfold {
+      0%  { transform:scaleY(0) translateY(-20px); opacity:0; }
+      100%{ transform:scaleY(1) translateY(0);     opacity:1; }
+    }
+    .paper::before { content:''; position:absolute; top:0; bottom:0; left:clamp(28px,8vw,38px); width:2px; background:var(--red-margin); }
+    .holes { position:absolute; left:8px; top:0; bottom:0; display:flex; flex-direction:column; justify-content:space-evenly; padding:20px 0; }
+    .hole { width:12px; height:12px; border-radius:50%; background:var(--blush); border:2px solid #ddd; }
+    .letter-text { font-family:'Caveat',cursive; font-size:clamp(1rem,3.8vw,1.22rem); line-height:1.85; color:#444; }
+    .write-char { display:inline; opacity:0; animation:writeIn 0.04s forwards; }
+    @keyframes writeIn { to{opacity:1;} }
+    .inline-heart { color:var(--deep-pink); animation:heartbeat 1.4s ease-in-out infinite; display:inline-block; }
+
+    /* BUTTON */
+    .btn {
+      background:var(--deep-pink); color:white; border:none;
+      padding: clamp(8px,2.5vw,10px) clamp(22px,6vw,28px);
+      border-radius:20px;
+      font-family:'Caveat',cursive; font-size:clamp(1rem,4vw,1.2rem);
+      cursor:pointer;
+      box-shadow:0 4px 14px rgba(255,133,161,0.4);
+      transition:transform 0.15s, box-shadow 0.15s;
+      touch-action: manipulation; user-select: none;
+    }
+    .btn:hover { transform:scale(1.08); box-shadow:0 6px 20px rgba(255,133,161,0.55); }
+    .btn:active { transform:scale(0.94); }
+
+    /* CATS */
+    .cat-scene { margin-top:14px; display:flex; justify-content:center; position:relative; }
+    .cat { width:50px; height:42px; position:relative; }
+    .cat-body { width:50px; height:34px; border-radius:50%; position:absolute; bottom:0; }
+    .cat-head { width:32px; height:28px; border-radius:50% 50% 40% 40%; position:absolute; top:0; }
+    .cat-ear-l,.cat-ear-r { width:0; height:0; position:absolute; top:-8px; }
+    .cat-ear-l { left:4px; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:11px solid var(--gray-cat); }
+    .cat-ear-r { right:4px; border-left:7px solid transparent; border-right:7px solid transparent; border-bottom:11px solid var(--gray-cat); }
+    .cat-eye-l,.cat-eye-r { width:5px; height:5px; background:#333; border-radius:50%; position:absolute; top:10px; }
+    .cat-eye-l{left:7px;} .cat-eye-r{right:7px;}
+    .cat-blush-l,.cat-blush-r { width:8px; height:5px; background:var(--pink); border-radius:50%; position:absolute; top:16px; opacity:0.7; }
+    .cat-blush-l{left:3px;} .cat-blush-r{right:3px;}
+    .cat-gray .cat-head,.cat-gray .cat-body { background:var(--gray-cat); }
+    .cat-white .cat-head,.cat-white .cat-body { background:var(--white-cat); border:1.5px solid #ddd; }
+    .cat-white .cat-ear-l,.cat-white .cat-ear-r { border-bottom-color:#e5e5e5; }
+    .cat-gray  { transform:translateX(7px) rotate(-5deg); z-index:2; animation:catBobL 2.2s ease-in-out infinite; }
+    .cat-white { transform:translateX(-7px) rotate(5deg); z-index:1; animation:catBobR 2.2s ease-in-out infinite 0.35s; }
+    @keyframes catBobL { 0%,100%{transform:translateX(7px) rotate(-5deg) translateY(0);}  50%{transform:translateX(7px) rotate(-5deg) translateY(-5px);} }
+    @keyframes catBobR { 0%,100%{transform:translateX(-7px) rotate(5deg) translateY(0);} 50%{transform:translateX(-7px) rotate(5deg) translateY(-5px);} }
+    .floating-hearts-cats { position:absolute; top:-22px; left:50%; transform:translateX(-50%); display:flex; gap:9px; pointer-events:none; }
+    .fhc { font-size:0.9rem; animation:floatHeart 1.9s ease-in-out infinite; }
+    .fhc:nth-child(2){animation-delay:0.5s;} .fhc:nth-child(3){animation-delay:1s;}
+    @keyframes floatHeart { 0%,100%{transform:translateY(0);opacity:1;} 50%{transform:translateY(-8px);opacity:0.7;} }
+
+    /* CONFETTI */
+    .confetti-heart { position:fixed; pointer-events:none; animation:confettiFall 1.5s ease-in forwards; z-index:999; }
+    @keyframes confettiFall {
+      0%  { transform:translateY(0) rotate(0deg) scale(1.2); opacity:1; }
+      100%{ transform:translateY(140px) rotate(45deg) scale(0.4); opacity:0; }
+    }
+
+    /* UNLOCK FLASH */
+    .unlock-flash {
+      position:fixed; inset:0;
+      background:radial-gradient(circle,rgba(255,180,200,0.65) 0%,transparent 70%);
+      pointer-events:none; z-index:998;
+      animation:flashOut 0.9s ease-out forwards;
+    }
+    @keyframes flashOut { 0%{opacity:1;} 100%{opacity:0;} }
+
+    /* POP IN */
+    @keyframes popIn {
+      0%  { transform:scale(0.5); opacity:0; }
+      70% { transform:scale(1.1); }
+      100%{ transform:scale(1);   opacity:1; }
+    }
+    .pop-in { animation:popIn 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+  </style>
+</head>
+<body>
+
+<div class="bg-photo"></div>
+<div class="bg-overlay"></div>
+
+<audio id="bgMusic" loop preload="auto">
+  <source src="song.mp3" type="audio/mpeg">
+</audio>
+
+<div class="bg-hearts" id="bgHearts"></div>
+<button id="music-btn" onclick="toggleMusic()" title="Toggle music">🎵</button>
+
+<!-- PAGE 1: Password -->
+<div class="page active" id="page-password">
+  <div class="lock-icon">🔒</div>
+  <div class="password-title">enter the secret code<br>to open your letter 🩷</div>
+  <div class="pin-dots" id="pinDots">
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+  </div>
+  <div class="wrong-msg" id="wrongMsg">wrong code, try again! 💔</div>
+  <div class="numpad" id="numpad">
+    <button class="num-btn" onclick="pressNum('1')">1</button>
+    <button class="num-btn" onclick="pressNum('2')">2</button>
+    <button class="num-btn" onclick="pressNum('3')">3</button>
+    <button class="num-btn" onclick="pressNum('4')">4</button>
+    <button class="num-btn" onclick="pressNum('5')">5</button>
+    <button class="num-btn" onclick="pressNum('6')">6</button>
+    <button class="num-btn" onclick="pressNum('7')">7</button>
+    <button class="num-btn" onclick="pressNum('8')">8</button>
+    <button class="num-btn" onclick="pressNum('9')">9</button>
+    <button class="num-btn empty"></button>
+    <button class="num-btn" onclick="pressNum('0')">0</button>
+    <button class="num-btn del" onclick="deleteLast()">⌫</button>
+  </div>
+  <div class="pin-hint">hint: our special day 💕</div>
+</div>
+
+<!-- PAGE 2: Envelope -->
+<div class="page" id="page-envelope">
+  <div id="envelope-wrap" onclick="openLetter()">
+    <div class="envelope">
+      <div class="envelope-shine"></div>
+      <div class="heart-seal">🩷</div>
+    </div>
+  </div>
+  <div class="open-label">open it !!!</div>
+</div>
+
+<!-- PAGE 3: Letter -->
+<div class="page" id="page-letter">
+  <div class="paper">
+    <div class="holes">
+      <div class="hole"></div>
+      <div class="hole"></div>
+      <div class="hole"></div>
+    </div>
+    <div class="letter-text" id="letterText"></div>
+  </div>
+  <button class="btn" onclick="closeLetter()">close it 🩷</button>
+</div>
+
+<script>
+// ---- AUDIO ----
+const bgMusic = document.getElementById('bgMusic');
+let musicPlaying = false;
+let audioCtx;
+
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTone(freq, duration, type = 'sine', vol = 0.18) {
+  const ctx = getCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.02);
+  gain.gain.setValueAtTime(vol, ctx.currentTime + duration * 0.6);
+  gain.gain.linearRampToValueAtTime(0, ctx.currentTime + duration);
+  osc.start(); osc.stop(ctx.currentTime + duration);
+}
+
+// Soft click for numpad buttons
+function playTick()     { playTone(520 + Math.random()*120, 0.07, 'sine', 0.12); }
+// Bright chime for correct/action
+function playChime(freq = 880) { playTone(freq, 0.15, 'sine', 0.18); }
+// Buzzer for wrong PIN
+function playWrong()    { playTone(160, 0.3, 'sawtooth', 0.12); }
+// Ascending unlock jingle
+function playUnlock()   { [523,659,784,1047].forEach((f,i) => setTimeout(() => playChime(f), i*100)); }
+// Double pop for envelope open
+function playHeartPop() { playTone(1050,0.13,'sine',0.2); setTimeout(()=>playTone(1350,0.1,'sine',0.15),70); }
+// Soft close tone
+function playClose()    { playTone(660, 0.12, 'sine', 0.15); setTimeout(()=>playTone(520,0.1,'sine',0.1),80); }
+
+function toggleMusic() {
+  const btn = document.getElementById('music-btn');
+  musicPlaying = !musicPlaying;
+  if (musicPlaying) {
+    bgMusic.volume = 0.75;
+    bgMusic.play().catch(() => {});
+    btn.textContent = '🎶';
+    btn.classList.add('playing');
+  } else {
+    bgMusic.pause();
+    btn.textContent = '🎵';
+    btn.classList.remove('playing');
+  }
+}
+
+// ---- BG HEARTS ----
+const hChars = ['🩷','💗','💕','♡','💓'];
+const bgH = document.getElementById('bgHearts');
+for (let i = 0; i < 22; i++) {
+  const h = document.createElement('span');
+  h.classList.add('bg-heart');
+  h.textContent = hChars[Math.floor(Math.random() * hChars.length)];
+  h.style.left = Math.random() * 100 + 'vw';
+  h.style.animationDuration = (7 + Math.random() * 9) + 's';
+  h.style.animationDelay   = (Math.random() * 10) + 's';
+  h.style.fontSize = (0.6 + Math.random() * 1.4) + 'rem';
+  bgH.appendChild(h);
+}
+
+// ---- SPARKLE ON CLICK & TOUCH ----
+function spawnSparkle(x, y) {
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement('span');
+    s.classList.add('sparkle');
+    s.textContent = hChars[Math.floor(Math.random() * hChars.length)];
+    s.style.left = (x + (Math.random()-0.5)*30) + 'px';
+    s.style.top  = (y + (Math.random()-0.5)*30) + 'px';
+    s.style.animationDelay = (Math.random()*0.12) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 850);
+  }
+}
+document.addEventListener('click', e => spawnSparkle(e.clientX, e.clientY));
+document.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  spawnSparkle(t.clientX, t.clientY);
+}, { passive: true });
+
+// ---- PASSWORD ----
+const SECRET = '0116';
+let pinInput = '';
+
+function updateDots() {
+  document.querySelectorAll('.pin-dot').forEach((d,i) => d.classList.toggle('filled', i < pinInput.length));
+}
+
+function pressNum(n) {
+  if (pinInput.length >= 4) return;
+  playTick();
+  pinInput += n;
+  updateDots();
+  if (pinInput.length === 4) setTimeout(checkPin, 160);
+}
+
+function deleteLast() {
+  if (!pinInput.length) return;
+  playTick();
+  pinInput = pinInput.slice(0, -1);
+  updateDots();
+  document.getElementById('wrongMsg').classList.remove('show');
+}
+
+function checkPin() {
+  if (pinInput === SECRET) {
+    playUnlock();
+    spawnConfetti(window.innerWidth/2, window.innerHeight/2, 18);
+    const flash = document.createElement('div');
+    flash.classList.add('unlock-flash');
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 950);
+    setTimeout(() => showPage('page-envelope'), 420);
+  } else {
+    playWrong();
+    document.getElementById('wrongMsg').classList.add('show');
+    const pad = document.getElementById('numpad');
+    pad.classList.add('shake');
+    setTimeout(() => pad.classList.remove('shake'), 450);
+    pinInput = '';
+    setTimeout(updateDots, 100);
+  }
+}
+
+// ---- PAGES ----
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ---- ENVELOPE ----
+let typingActive = false;
+
+function openLetter() {
+  playHeartPop();
+  spawnConfetti(window.innerWidth/2, window.innerHeight*0.38, 20);
+  showPage('page-letter');
+  // auto play song
+  if (!musicPlaying) {
+    bgMusic.volume = 0.75;
+    bgMusic.play().catch(() => {});
+    musicPlaying = true;
+    const btn = document.getElementById('music-btn');
+    btn.textContent = '🎶';
+    btn.classList.add('playing');
+  }
+  setTimeout(typeLetterText, 250);
+}
+
+function closeLetter() {
+  typingActive = false;
+  playClose();
+  const el = document.getElementById('letterText');
+  if (el) el.innerHTML = '';
+  const paper = document.querySelector('.paper');
+  if (paper) paper.scrollTop = 0;
+  showPage('page-envelope');
+}
+
+// ---- TYPEWRITER ----
+function typeLetterText() {
+  typingActive = true;
+  const el = document.getElementById('letterText');
+  el.innerHTML = '';
+  const paper = el.closest('.paper');
+  const fullText = "Happy birthday my baby beyii 💞💞\n\nSelamat ulang tahun babyyyy, wishing you all the good things and success in life, love, and everything you wish for. you deserve every good thing that comes your way.\n\nThank you for being you, for bringing warmth and joy into my life. even though we argue sometimes, you're still my favorite person to argue with 💗, i really enjoy spending time with you every moment i'm with you. i'll always be cheering for you and wishing the best for you and be there for you, today, tomorrow and always baby.\n\nEnjoy your special day baby, don't forget to treat yourself today.\n\nHappy 23rd birthday, mbg my baby my bini gw my beautiful babyy. 💗";
+
+  const chars = [...fullText];
+  let i = 0;
+
+  function next() {
+    if (!typingActive) return; // cancelled — stop here
+    if (i < chars.length) {
+      const ch = chars[i];
+      if (ch === '\n') {
+        el.appendChild(document.createElement('br'));
+      } else {
+        const span = document.createElement('span');
+        span.classList.add('write-char');
+        span.textContent = ch;
+        el.appendChild(span);
+        if (i % 4 === 0) playTick();
+      }
+      i++;
+      if (paper) paper.scrollTop = paper.scrollHeight;
+      setTimeout(next, 18);
+    } else {
+      // heart
+      const heart = document.createElement('span');
+      heart.classList.add('inline-heart', 'pop-in');
+      heart.textContent = '🩷';
+      el.appendChild(heart);
+      // cats
+      const catWrap = document.createElement('div');
+      catWrap.classList.add('cat-scene', 'pop-in');
+      catWrap.style.opacity = '0';
+      catWrap.style.animationDelay = '0.2s';
+      catWrap.innerHTML = `
+        <div style="position:relative;display:flex;gap:4px;">
+          <div class="floating-hearts-cats">
+            <span class="fhc">🩷</span><span class="fhc">💗</span><span class="fhc">🩷</span>
+          </div>
+          <div class="cat cat-gray">
+            <div class="cat-head">
+              <div class="cat-ear-l"></div><div class="cat-ear-r"></div>
+              <div class="cat-eye-l"></div><div class="cat-eye-r"></div>
+              <div class="cat-blush-l"></div><div class="cat-blush-r"></div>
+            </div>
+            <div class="cat-body"></div>
+          </div>
+          <div class="cat cat-white">
+            <div class="cat-head">
+              <div class="cat-ear-l" style="border-bottom-color:#e5e5e5"></div>
+              <div class="cat-ear-r" style="border-bottom-color:#e5e5e5"></div>
+              <div class="cat-eye-l"></div><div class="cat-eye-r"></div>
+              <div class="cat-blush-l"></div><div class="cat-blush-r"></div>
+            </div>
+            <div class="cat-body"></div>
+          </div>
+        </div>`;
+      el.appendChild(catWrap);
+      setTimeout(() => { catWrap.style.opacity = '1'; }, 60);
+      playHeartPop();
+    }
+  }
+  next();
+}
+
+// ---- CONFETTI ----
+function spawnConfetti(x, y, count = 12) {
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('span');
+    el.classList.add('confetti-heart');
+    el.textContent = hChars[Math.floor(Math.random() * hChars.length)];
+    el.style.left = (x + (Math.random()-0.5)*170) + 'px';
+    el.style.top  = (y + (Math.random()-0.5)*110) + 'px';
+    el.style.fontSize = (0.85 + Math.random()*0.9) + 'rem';
+    el.style.animationDelay = (Math.random()*0.35) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1700);
+  }
+}
+</script>
+</body>
+</html>
